@@ -1,0 +1,55 @@
+Environment running:- My Jenkins master is running in the EC2 instance. Jenkins version:- Jenkins 2.249.1
+
+My Kubernetes cluster is running in EKS
+
+I have installed the Kubernetes plugin(1.27.7) and trying to create a Jenkins agent in k8's. I have created a service account, role, role binding. My Yaml file looks as below.
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins-admin
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: jenkins
+  namespace: default
+  labels:
+    "app.kubernetes.io/name": 'jenkins'
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create","delete","get","list","patch","update","watch"]
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs: ["create","delete","get","list","patch","update","watch"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get","list","watch"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jenkins-role-binding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: jenkins
+subjects:
+- kind: ServiceAccount
+  name: jenkins-admin
+  namespace: default
+In Place of the default namespace, I have given a specific namespace
+
+Below is the attached screenshots of My configuration I have added credentials as the secret text
+
+enter image description here
+
+enter image description here
+
+Error it is throwing:- Error testing connection https://xxxxxxxx.us-east-1.eks.amazonaws.com: java.io.FileNotFoundException: /var/lib/jenkins/.kube/config (No such file or directory)
